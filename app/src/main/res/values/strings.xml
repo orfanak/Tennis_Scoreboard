@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Tennis Scoreboard+</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="tournament_title">Tournament</string>
+    <string name="tournament_round">Round</string>
+    <string name="player_one">Player One</string>
+    <string name="player_two">Player Two</string>
+    <string name="sets_number">Sets for Win</string>
+    <string name="superTieBreak">Super Tiebreak</string>
+    <string name="yes">Yes</string>
+    <string name="No">No</string>
+    <string name="superTiebreakPoints">Super Tiebreak Points: </string>
+    <string name="title_activity_play_set">PlaySet</string>
+    <string name="game_sets">"Sets for Win: "</string>
+    <string name="super_tie_break_points">"Super Tie Break Points: "</string>
+    <string name="start_button">Start</string>
+    <string name="friendly_match">Friendly Match</string>
+    <string name="next_set_button">Next Set</string>
+    <string name="button_share">Share</string>
+    <string name="title_activity_second__set">Second_Set</string>
+    <string name="title_activity_first_set">FirstSet</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="title_activity_second_set">SecondSet</string>
+    <string name="message_first_serve">Click on the tennis ball of the player who serves first</string>
+    <string name="first_serve_tie_break">Click on the tennis ball of the player who serves first in tie break</string>
+    <string name="developed_by">Developed by Orfanak, August 2015</string>
+    <string name="title_activity_third_set">ThirdSet</string>
+    <string name="dialog_title">Super Tie Break</string>
+    <string name="dialog_message">Play Super Tie Break?</string>
+    <string name="positive_button">Yes</string>
+    <string name="negative_button">No</string>
+    <string name="super_tie_break_points_title">Super Tie Break points</string>
+    <string name="define_super_tie_break_points">Please define super Tie Break Points</string>
+    <string name="start_new_title">Start new match</string>
+    <string name="start_new_question">Start a new match?</string>
+    <string name="next_set">Next Set</string>
+    <string name="replay_set_title">Replay Set</string>
+    <string name="replay_set_quest">Restart current set?</string>
+    <string name="restart">Restart</string>
+    <string name="title_activity_fourth_set">FourthSet</string>
+    <string name="title_activity_fifth_set">FifthSet</string>
+    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+
+</resources>

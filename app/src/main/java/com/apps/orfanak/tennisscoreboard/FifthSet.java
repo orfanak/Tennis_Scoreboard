@@ -1,0 +1,809 @@
+package com.apps.orfanak.tennisscoreboard;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Environment;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+public class FifthSet extends AppCompatActivity {
+
+    private static final  String TAG = "TennisScoreboard+" ;
+    private String tournament;
+    private String round;
+    private String playerOne;
+    private String playerTwo;
+    private String sets;
+    private Boolean superTieBreak = false;
+    private int intSuperTiePoints;
+    private TextView textViewTournament;
+    private TextView textViewRound;
+    private Button player1;
+    private Button player2;
+    private Button nextSetButton;
+    private Button replaySetButton;
+    private Button shareButton;
+    private TextView set1player1;
+    private TextView set1player2;
+    private TextView pointsP1;
+    private TextView pointsP2;
+    private boolean setEnd;
+    private int gamesP1 = 0;
+    private int gamesP2 = 0;
+    private int totalGames =6;
+    int maxPoints = 7;
+    private File imageFileTennis;
+    private Button cancel;
+    private String oldPoints1;
+    private String oldPoints2;
+    private int oldGamesP1;
+    private int oldGamesP2;
+    private ImageButton tennisBallP1;
+    private ImageButton tennisBallP2;
+    private String resultS1P1;
+    private String resultS1P2;
+    private String resultS2P1;
+    private String resultS2P2;
+    private String resultS3P1;
+    private String resultS3P2;
+    private String resultS4P1;
+    private String resultS4P2;
+    private TextView set2player1;
+    private TextView set2player2;
+    private TextView set4player1;
+    private TextView set4player2;
+    private int setsP1;
+    private int setsP2;
+    private int setP1old;
+    private int setsP2old;
+    private TextView set3player1;
+    private TextView set3player2;
+    private AlertDialog.Builder dialog;
+    private boolean tiebreak=false;
+    private TextView set5player1;
+    private TextView set5player2;
+    InterstitialAd mInterstitialAd;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_fifth_set);
+
+        Bundle extras = getIntent().getExtras();
+
+        if (extras != null) {
+
+            tournament = extras.getString("tournament");
+            round = extras.getString("round");
+            playerOne = extras.getString("player1");
+            playerTwo = extras.getString("player2");
+            sets = extras.getString("sets");
+            resultS1P1 = extras.getString("set1P1");
+            resultS1P2 = extras.getString("set1P2");
+            resultS2P1 = extras.getString("set2P1");
+            resultS2P2 = extras.getString("set2P2");
+            resultS3P1 = extras.getString("set3P1");
+            resultS3P2 = extras.getString("set3P2");
+            resultS4P1 = extras.getString("set4P1");
+            resultS4P2 = extras.getString("set4P2");
+            setsP1 = extras.getInt("setsP1");
+            setsP2 = extras.getInt("setsP2");
+            setP1old=setsP1;
+            setsP2old=setsP2;
+        }
+
+
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId("ca-app-pub-3283484166219147/3009830131");
+
+        setUpPlaySet();
+
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdClosed() {
+                requestNewInterstitial();
+
+                    shareImage();
+
+            }
+        });
+
+        requestNewInterstitial();
+
+        tennisBallP1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tennisBallP1.setAlpha((float) 1.0);
+                tennisBallP2.setVisibility(View.INVISIBLE);
+                tennisBallP1.setEnabled(false);
+                tennisBallP2.setEnabled(false);
+                player1.setEnabled(true);
+                player2.setEnabled(true);
+            }
+        });
+
+        tennisBallP2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tennisBallP2.setAlpha((float) 1.0);
+                tennisBallP1.setVisibility(View.INVISIBLE);
+                tennisBallP1.setEnabled(false);
+                tennisBallP2.setEnabled(false);
+                player1.setEnabled(true);
+                player2.setEnabled(true);
+            }
+        });
+
+        player1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+                if (gamesP1 == 6 && gamesP2 == 6) {
+                    tiebreak = true;
+                    gainPointP1TieBreak();
+
+                } else {
+                    gainPointP1();
+
+                }
+            }
+        });
+
+        player2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+                if (gamesP1==6&&gamesP2==6) {
+                    tiebreak =true;
+                    gainPointP2TieBreak();
+                }
+
+                else{
+                    gainPointP2();
+
+                }
+            }
+        });
+
+        replaySetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                dialog = new AlertDialog.Builder(FifthSet.this);
+
+                //set Title
+                dialog.setTitle(R.string.replay_set_title);
+
+                //set message
+                dialog.setMessage(R.string.replay_set_quest);
+
+                //set cancelable
+                dialog.setCancelable(false);
+
+                // set an icon
+                dialog.setIcon(android.R.drawable.btn_star_big_on);
+
+                //Toast.makeText(getApplicationContext(),"It will restart the app",Toast.LENGTH_LONG).show();
+
+                //se Positive button
+                dialog.setPositiveButton(getResources().getString(R.string.positive_button),
+
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                gamesP1=0;
+                                gamesP2=0;
+                                pointsP1.setText("0");
+                                pointsP2.setText("0");
+                                maxPoints=7;
+                                totalGames=6;
+                                set4player1.setText("0");
+                                set4player2.setText("0");
+                                setEnd=false;
+                                player1.setEnabled(true);
+                                player2.setEnabled(true);
+                                tennisBallP1.setEnabled(true);
+                                tennisBallP1.setVisibility(View.VISIBLE);
+                                tennisBallP2.setEnabled(true);
+                                tennisBallP2.setVisibility(View.VISIBLE);
+                                nextSetButton.setVisibility(View.GONE);
+                                setsP1=setP1old;
+                                setsP2=setsP2old;
+                                cancel.setEnabled(true);
+                                cancel.setVisibility(View.VISIBLE);
+
+                            }
+                        });
+
+                // set negative button
+                dialog.setNegativeButton(getResources().getString(R.string.negative_button),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                dialog.cancel();
+                            }
+                        });
+
+                // create dialog
+                AlertDialog alertD1 = dialog.create();
+
+                //show dialog
+                alertD1.show();
+
+            }
+        });
+
+        shareButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mInterstitialAd.isLoaded()) {
+                    mInterstitialAd.show();
+                }else {
+                    shareImage();
+                }
+            }
+        });
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (tiebreak) {
+                    pointsP1.setText(oldPoints1);
+                    pointsP2.setText(oldPoints2);
+                } else {
+
+                    if (pointsP1.getText().toString().equals("Ad") || pointsP2.getText().toString().equals("Ad")) {
+                        Log.i(TAG, "Handling Ad case");
+                    } else {
+
+                        String currentPointsP1 = String.valueOf(pointsP1.getText());
+                        String currentPointsP2 = String.valueOf(pointsP2.getText());
+
+                        int pointsPlayer1 = Integer.valueOf(currentPointsP1);
+                        int pointsPlayer2 = Integer.valueOf(currentPointsP2);
+
+
+                        if (pointsPlayer1 == 0 && pointsPlayer2 == 0 || setEnd) {
+                            revertServe();
+                        }
+
+                        pointsP1.setText(oldPoints1);
+                        pointsP2.setText(oldPoints2);
+                        gamesP1 = oldGamesP1;
+                        gamesP2 = oldGamesP2;
+                        set4player1.setText(String.valueOf(oldGamesP1));
+                        set4player2.setText(String.valueOf(oldGamesP2));
+
+
+                        if (setEnd) {
+                            setEnd = false;
+                            player1.setEnabled(true);
+                            player2.setEnabled(true);
+                        }
+                    }
+                }
+            }
+        });
+
+    }
+
+
+
+    private void setUpPlaySet() {
+
+
+        //initializing textviews
+        textViewTournament = (TextView) findViewById(R.id.textViewTitleID);
+        textViewTournament.setText(tournament);
+
+        textViewRound = (TextView) findViewById(R.id.textViewRoundID);
+        textViewRound.setText(round);
+
+        //initializing player button
+        player1 = (Button) findViewById(R.id.buttonPlayer1);
+        player1.setText(playerOne);
+        player1.setTextColor(Color.WHITE);
+
+        player2 =(Button) findViewById(R.id.buttonPlayer2);
+        player2.setText(playerTwo);
+        player2.setTextColor(Color.WHITE);
+
+        //initializing other buttons
+        nextSetButton = (Button) findViewById(R.id.buttonNextSetID);
+        replaySetButton = (Button) findViewById(R.id.buttonReplaySet);
+        shareButton = (Button) findViewById(R.id.buttonShareID);
+        cancel = (Button) findViewById(R.id.cancelbuttonID);
+
+        nextSetButton.setVisibility(View.GONE);
+        nextSetButton.setEnabled(true);
+
+
+        //setting up textviews for set1
+        set1player1 = (TextView) findViewById(R.id.textViewSet1P1Id);
+        set1player2 = (TextView) findViewById(R.id.textViewSet1P2Id);
+        set1player1.setText(resultS1P1);
+        set1player2.setText(resultS1P2);
+
+        //setting up textvies for set2
+        set2player1 = (TextView) findViewById(R.id.textViewSet2P1Id);
+        set2player2 = (TextView) findViewById(R.id.textViewSet2P2Id);
+        set2player1.setText(resultS2P1);
+        set2player2.setText(resultS2P2);
+
+        //setting up textview for set3
+        set3player1 = (TextView) findViewById(R.id.textViewSet3P1Id);
+        set3player2 = (TextView) findViewById(R.id.textViewSet3P2Id);
+        set3player1.setText(resultS3P1);
+        set3player2.setText(resultS3P2);
+
+        //setting up textvies for set4
+        set4player1 = (TextView) findViewById(R.id.textViewSet4P1Id);
+        set4player2 = (TextView) findViewById(R.id.textViewSet4P2Id);
+        set4player1.setText(resultS4P1);
+        set4player2.setText(resultS4P2);
+
+
+        //setting up textvies for set5
+        set5player1 = (TextView) findViewById(R.id.textViewSet5P1Id);
+        set5player2 = (TextView) findViewById(R.id.textViewSet5P2Id);
+
+
+        //setting up textviews for player points
+        pointsP1 = (TextView) findViewById(R.id.pointsP1);
+        pointsP2 = (TextView) findViewById(R.id.pointsP2);
+
+
+        // setting up set status
+        setEnd = false;
+
+        //setting up buttons
+        player1.setEnabled(false);
+        player2.setEnabled(false);
+
+        //initializing ball icons for serving
+        tennisBallP1 = (ImageButton) findViewById(R.id.serveP1ID);
+        tennisBallP2 = (ImageButton) findViewById(R.id.serveP2ID);
+        tennisBallP1.setEnabled(true);
+        tennisBallP2.setEnabled(true);
+
+
+
+    }
+
+    private void gainPointP1TieBreak(){
+        // reading current points in tie break
+        String currentPointsP1 = String.valueOf(pointsP1.getText());
+        String currentPointsP2 = String.valueOf(pointsP2.getText());
+
+        oldPoints1 = currentPointsP1;
+        oldPoints2 = currentPointsP2;
+
+        int pointsPlayer1 = Integer.valueOf(currentPointsP1);
+        int pointsPlayer2 = Integer.valueOf(currentPointsP2);
+
+
+
+
+        if(pointsPlayer1 == maxPoints-1 && pointsPlayer2 == maxPoints - 1){
+            maxPoints++;
+        }
+        if(pointsPlayer1 == maxPoints-1 && pointsPlayer2< maxPoints-1 ){
+            pointsPlayer1++;
+            pointsP1.setText(String.valueOf(pointsPlayer1));
+            setEnd = true;
+            //nextSet();
+            Toast.makeText(getApplicationContext(), "Set winner is " + String.valueOf(player1.getText()), Toast.LENGTH_LONG).show();
+            player1.setEnabled(false);
+            player2.setEnabled(false);
+            gamesP1++;
+            gainGame(set5player1, gamesP1);
+            checkEndMatch();
+
+        }
+
+        else {
+            pointsPlayer1++;
+            pointsP1.setText(String.valueOf(pointsPlayer1));
+        }
+
+        serveTieBreak();
+
+    }
+
+    private void gainPointP2TieBreak(){
+        // reading current points
+        String currentPointsP1 = String.valueOf(pointsP1.getText());
+        String currentPointsP2 = String.valueOf(pointsP2.getText());
+
+        oldPoints1 = currentPointsP1;
+        oldPoints2 = currentPointsP2;
+
+        int pointsPlayer1 = Integer.valueOf(currentPointsP1);
+        int pointsPlayer2 = Integer.valueOf(currentPointsP2);
+
+
+        if(pointsPlayer1 == maxPoints-1 && pointsPlayer2 == maxPoints - 1){
+            maxPoints++;
+        }
+        if(pointsPlayer2 == maxPoints-1 && pointsPlayer1< maxPoints-1 ){
+            pointsPlayer2++;
+            pointsP2.setText(String.valueOf(pointsPlayer2));
+            setEnd = true;
+            //nextSet();
+            Toast.makeText(getApplicationContext(),"Set winner is " + String.valueOf(player2.getText()),Toast.LENGTH_LONG).show();
+            player1.setEnabled(false);
+            player2.setEnabled(false);
+            gamesP2++;
+            gainGame(set5player2, gamesP2);
+            checkEndMatch();
+        }
+
+        else {
+            pointsPlayer2++;
+            pointsP2.setText(String.valueOf(pointsPlayer2));
+        }
+
+
+        serveTieBreak();
+    }
+
+    private void gainPointP1() {
+
+        // reading current points
+        String currentPointsP1 = String.valueOf(pointsP1.getText());
+        String currentPointsP2 = String.valueOf(pointsP2.getText());
+        oldPoints1 = currentPointsP1;
+        oldPoints2 = currentPointsP2;
+        oldGamesP1=gamesP1;
+        oldGamesP2=gamesP2;
+
+        if(currentPointsP1.equals("0")){
+            pointsP1.setText("15");
+        }
+        else if(currentPointsP1.equals("15")){
+            pointsP1.setText("30");
+        }
+        else if(currentPointsP1.equals("30")){
+            pointsP1.setText("40");
+        }
+        else if(currentPointsP1.equals("40") && currentPointsP2.equals("40")){
+            pointsP1.setText("Ad");
+        }
+        else if(currentPointsP1.equals("40") && currentPointsP2.equals("Ad")){
+            pointsP1.setText("40");
+            pointsP2.setText("40");
+        }
+        else
+        {
+            pointsP1.setText("0");
+            pointsP2.setText("0");
+
+            gamesP1++;
+            gainGame(set5player1, gamesP1);
+        }
+
+
+    }
+
+    private void gainPointP2() {
+
+        // reading current points
+        String currentPointsP1 = String.valueOf(pointsP1.getText());
+        String currentPointsP2 = String.valueOf(pointsP2.getText());
+        oldPoints1 = currentPointsP1;
+        oldPoints2 = currentPointsP2;
+        oldGamesP1=gamesP1;
+        oldGamesP2=gamesP2;
+
+
+
+        if(currentPointsP2.equals("0")){
+            pointsP2.setText("15");
+        }
+        else if(currentPointsP2.equals("15")){
+            pointsP2.setText("30");
+        }
+        else if(currentPointsP2.equals("30")){
+            pointsP2.setText("40");
+        }
+        else if(currentPointsP2.equals("40") && currentPointsP1.equals("40")){
+            pointsP2.setText("Ad");
+        }
+        else if(currentPointsP2.equals("40") && currentPointsP1.equals("Ad")){
+            pointsP1.setText("40");
+            pointsP2.setText("40");
+        }
+        else
+        {
+            pointsP1.setText("0");
+            pointsP2.setText("0");
+
+            gamesP2++;
+            gainGame(set5player2, gamesP2);
+        }
+
+    }
+
+    private void gainGame(TextView gamesPlayer, int games) {
+
+        gamesPlayer.setText(String.valueOf(games));
+
+        checkEndOfSet();
+
+        if(tennisBallP1.getVisibility()== View.VISIBLE){
+            tennisBallP1.setVisibility(View.INVISIBLE);
+            tennisBallP2.setVisibility(View.VISIBLE);
+            tennisBallP1.setAlpha((float) 1);
+            tennisBallP2.setAlpha((float) 1);
+        }
+        else if(tennisBallP2.getVisibility()==View.VISIBLE){
+            tennisBallP2.setVisibility(View.INVISIBLE);
+            tennisBallP1.setVisibility((View.VISIBLE));
+            tennisBallP1.setAlpha((float) 1);
+            tennisBallP2.setAlpha((float) 1);
+        }
+    }
+
+    private void serveTieBreak() {
+
+        // reading current points in tie break
+        String currentPointsP1 = String.valueOf(pointsP1.getText());
+        String currentPointsP2 = String.valueOf(pointsP2.getText());
+
+        int pointsPlayer1 = Integer.valueOf(currentPointsP1);
+        int pointsPlayer2 = Integer.valueOf(currentPointsP2);
+
+        int sumPoints = pointsPlayer1 + pointsPlayer2;
+
+        if((sumPoints==1||sumPoints==5||sumPoints==9||sumPoints==13||sumPoints==17||sumPoints==21||sumPoints==25||sumPoints==29) && tennisBallP1.getVisibility()==View.VISIBLE){
+            tennisBallP1.setVisibility(View.INVISIBLE);
+            tennisBallP2.setVisibility(View.VISIBLE);
+
+        }
+        else if((sumPoints==3||sumPoints==7||sumPoints==11||sumPoints==15||sumPoints==19||sumPoints==23||sumPoints==27||sumPoints==31) && tennisBallP1.getVisibility()==View.INVISIBLE){
+            tennisBallP1.setVisibility(View.VISIBLE);
+            tennisBallP2.setVisibility(View.INVISIBLE);
+        }
+
+        else if((sumPoints==1||sumPoints==5||sumPoints==9||sumPoints==13) && tennisBallP2.getVisibility()==View.VISIBLE){
+            tennisBallP2.setVisibility(View.INVISIBLE);
+            tennisBallP1.setVisibility(View.VISIBLE);
+
+        }
+        else if((sumPoints==3||sumPoints==7||sumPoints==11||sumPoints==15) && tennisBallP2.getVisibility()==View.INVISIBLE){
+            tennisBallP2.setVisibility(View.VISIBLE);
+            tennisBallP1.setVisibility(View.INVISIBLE);
+        }
+
+    }
+
+    private void checkEndOfSet(){
+
+
+        if(gamesP1==totalGames && gamesP2<totalGames - 1){
+            setEnd = true;
+
+            setsP1++;
+
+            Toast.makeText(getApplicationContext(),"Set winner is " + String.valueOf(player1.getText()),Toast.LENGTH_LONG).show();
+            player1.setEnabled(false);
+            player2.setEnabled(false);
+            //nextSet();
+        }
+        else if(gamesP2==totalGames && gamesP1<totalGames - 1){
+            setEnd = true;
+
+            setsP2++;
+            Toast.makeText(getApplicationContext(),"Set winner is " + String.valueOf(player2.getText()),Toast.LENGTH_LONG).show();
+            player1.setEnabled(false);
+            player2.setEnabled(false);
+            //nextSet();
+        }
+        else if(gamesP1==totalGames - 1 && gamesP2==totalGames - 1){
+            // Toast.makeText(getApplicationContext(),"Tie Break",Toast.LENGTH_LONG).show();
+            setEnd=false;
+            totalGames = 7;
+        }
+
+        checkEndMatch();
+
+    }
+
+    private void checkEndMatch() {
+
+        if (setEnd && setsP1==3 && sets.equals("3")){
+            nextSetButton.setVisibility(View.INVISIBLE);
+            Toast.makeText(getApplicationContext(),"End of Match",Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),"Winner is " + String.valueOf(player1.getText()),Toast.LENGTH_LONG).show();
+            nextSetButton.setVisibility(View.INVISIBLE);
+            tennisBallP1.setVisibility(View.GONE);
+            tennisBallP2.setVisibility(View.GONE);
+            pointsP1.setVisibility(View.GONE);
+            pointsP2.setVisibility(View.GONE);
+
+        }
+        else if(setEnd && setsP2==3 && sets.equals("3")){
+            nextSetButton.setVisibility(View.INVISIBLE);
+            Toast.makeText(getApplicationContext(),"End of Match",Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),"Winner is " + String.valueOf(player2.getText()),Toast.LENGTH_LONG).show();
+            nextSetButton.setVisibility(View.INVISIBLE);
+            tennisBallP1.setVisibility(View.GONE);
+            tennisBallP2.setVisibility(View.GONE);
+            pointsP1.setVisibility(View.GONE);
+            pointsP2.setVisibility(View.GONE);
+
+        }
+
+
+    }
+
+    public void startNewGame(){
+
+        dialog = new AlertDialog.Builder(this);
+
+        //set Title
+        dialog.setTitle(R.string.start_new_title);
+
+        //set message
+        dialog.setMessage(R.string.start_new_question);
+
+        //set cancelable
+        dialog.setCancelable(false);
+
+        // set an icon
+        dialog.setIcon(android.R.drawable.btn_star_big_on);
+
+        //Toast.makeText(getApplicationContext(),"It will restart the app",Toast.LENGTH_LONG).show();
+
+        //se Positive button
+        dialog.setPositiveButton(getResources().getString(R.string.positive_button),
+
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        Intent i = new Intent(FifthSet.this, MainActivity.class);
+
+                        startActivity(i);
+
+
+                    }
+                });
+
+
+        // set negative button
+        dialog.setNegativeButton(getResources().getString(R.string.negative_button),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+
+                        dialog.cancel();
+                    }
+                });
+
+        // create dialog
+        AlertDialog alertD1 = dialog.create();
+
+        //show dialog
+        alertD1.show();
+
+
+    }
+
+    //share screenshot image
+    public void shareImage(){
+
+        // image naming and path  to include sd card  appending name you choose for file
+        String mPath = Environment.getExternalStorageDirectory().toString() + "/scrShotTennis.jpeg";
+
+        // create bitmap screen capture
+           Bitmap bitmap;
+        // View v1= findViewById(R.id.image);
+        View v2 = getWindow().getDecorView().getRootView();
+
+        v2.setDrawingCacheEnabled(true);
+        bitmap = Bitmap.createBitmap(v2.getDrawingCache());
+        v2.setDrawingCacheEnabled(false);
+
+        OutputStream fout = null;
+        imageFileTennis = new File(mPath);
+
+        try {
+            fout = new FileOutputStream(imageFileTennis);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fout);
+            fout.flush();
+            fout.close();
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        //sharing
+        Uri uri = Uri.fromFile(new File(mPath));
+        Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+        sharingIntent.setType("image/jpeg");
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
+        startActivity(Intent.createChooser(sharingIntent, "Share via"));
+    }
+
+    public void revertServe(){
+        if(tennisBallP1.getVisibility()== View.VISIBLE && tennisBallP2.getVisibility() == View.INVISIBLE){
+            tennisBallP1.setVisibility(View.INVISIBLE);
+            tennisBallP2.setVisibility(View.VISIBLE);
+        }
+        else if(tennisBallP1.getVisibility()== View.INVISIBLE && tennisBallP2.getVisibility() == View.VISIBLE){
+            tennisBallP1.setVisibility(View.VISIBLE);
+            tennisBallP2.setVisibility(View.INVISIBLE);
+        }
+    }
+
+
+    private void requestNewInterstitial() {
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
+                .build();
+
+        mInterstitialAd.loadAd(adRequest);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_fifth_set, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+        else if(id == R.id.action_restart){
+
+            startNewGame();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+}
